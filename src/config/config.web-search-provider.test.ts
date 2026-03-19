@@ -51,6 +51,23 @@ describe("web search provider config", () => {
     expect(res.ok).toBe(true);
   });
 
+  it("accepts searxng provider and config", () => {
+    const res = validateConfigObject(
+      buildWebSearchProviderConfig({
+        provider: "searxng",
+        providerConfig: {
+          baseUrl: "http://127.0.0.1:8081/search",
+          language: "ja-JP",
+          safeSearch: 0,
+          categories: ["general"],
+          engines: ["duckduckgo", "google"],
+        },
+      }),
+    );
+
+    expect(res.ok).toBe(true);
+  });
+
   it("accepts brave llm-context mode config", () => {
     const res = validateConfigObject(
       buildWebSearchProviderConfig({

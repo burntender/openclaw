@@ -24,6 +24,11 @@ const {
   extractKimiCitations,
   resolveBraveMode,
   mapBraveLlmContextResults,
+  resolveSearxngBaseUrl,
+  resolveSearxngLanguage,
+  resolveSearxngSafeSearch,
+  resolveSearxngCategories,
+  resolveSearxngEngines,
 } = __testing;
 
 const kimiApiKeyEnv = ["KIMI_API", "KEY"].join("_");
@@ -344,6 +349,40 @@ describe("web_search kimi config resolution", () => {
   it("resolves default model and baseUrl", () => {
     expect(resolveKimiModel({})).toBe("moonshot-v1-128k");
     expect(resolveKimiBaseUrl({})).toBe("https://api.moonshot.ai/v1");
+  });
+});
+
+describe("web_search searxng config resolution", () => {
+  it("uses config values when provided", () => {
+    expect(resolveSearxngBaseUrl({ baseUrl: "http://127.0.0.1:8081/search" })).toBe(
+      "http://127.0.0.1:8081/search",
+    );
+    expect(resolveSearxngLanguage({ language: "ja-JP" })).toBe("ja-JP");
+    expect(resolveSearxngSafeSearch({ safeSearch: 0 })).toBe("0");
+    expect(resolveSearxngCategories({ categories: ["general"] })).toEqual(["general"]);
+    expect(resolveSearxngEngines({ engines: ["duckduckgo", "google"] })).toEqual([
+      "duckduckgo",
+      "google",
+    ]);
+  });
+
+  it("falls back to env values when config is absent", () => {
+    withEnv(
+      {
+        SEARXNG_URL: "http://127.0.0.1:8081/search",
+        SEARXNG_LANGUAGE: "ja-JP",
+        SEARXNG_SAFESEARCH: "0",
+        SEARXNG_CATEGORIES: "general,news",
+        SEARXNG_ENGINES: "duckduckgo,google",
+      },
+      () => {
+        expect(resolveSearxngBaseUrl({})).toBe("http://127.0.0.1:8081/search");
+        expect(resolveSearxngLanguage({})).toBe("ja-JP");
+        expect(resolveSearxngSafeSearch({})).toBe("0");
+        expect(resolveSearxngCategories({})).toEqual(["general", "news"]);
+        expect(resolveSearxngEngines({})).toEqual(["duckduckgo", "google"]);
+      },
+    );
   });
 });
 

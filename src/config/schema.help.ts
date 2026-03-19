@@ -661,7 +661,7 @@ export const FIELD_HELP: Record<string, string> = {
   "tools.message.broadcast.enabled": "Enable broadcast action (default: true).",
   "tools.web.search.enabled": "Enable the web_search tool (requires a provider API key).",
   "tools.web.search.provider":
-    'Search provider ("brave", "gemini", "grok", "kimi", or "perplexity"). Auto-detected from available API keys if omitted.',
+    'Search provider ("brave", "gemini", "grok", "kimi", "perplexity", or "searxng"). Auto-detected from available API keys if omitted.',
   "tools.web.search.apiKey": "Brave Search API key (fallback: BRAVE_API_KEY env var).",
   "tools.web.search.maxResults": "Number of results to return (1-10).",
   "tools.web.search.timeoutSeconds": "Timeout in seconds for web_search requests.",
@@ -684,6 +684,13 @@ export const FIELD_HELP: Record<string, string> = {
     "Optional Perplexity/OpenRouter chat-completions base URL override. Setting this opts Perplexity into the legacy Sonar/OpenRouter compatibility path.",
   "tools.web.search.perplexity.model":
     'Optional Sonar/OpenRouter model override (default: "perplexity/sonar-pro"). Setting this opts Perplexity into the legacy chat-completions compatibility path.',
+  "tools.web.search.searxng.baseUrl":
+    'Searxng search endpoint URL (default: "http://127.0.0.1:8080/search").',
+  "tools.web.search.searxng.language": 'Default Searxng language (for example "en-US" or "ja-JP").',
+  "tools.web.search.searxng.safeSearch": "Searxng safe search level (0=off, 1=moderate, 2=strict).",
+  "tools.web.search.searxng.categories":
+    "Default Searxng categories list passed to the search endpoint.",
+  "tools.web.search.searxng.engines": "Default Searxng engines list passed to the search endpoint.",
   "tools.web.fetch.enabled": "Enable the web_fetch tool (lightweight HTTP fetch).",
   "tools.web.fetch.maxChars": "Max characters returned by web_fetch (truncated).",
   "tools.web.fetch.maxCharsCap":

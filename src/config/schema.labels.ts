@@ -229,6 +229,11 @@ export const FIELD_LABELS: Record<string, string> = {
   "tools.web.search.perplexity.apiKey": "Perplexity API Key", // pragma: allowlist secret
   "tools.web.search.perplexity.baseUrl": "Perplexity Base URL",
   "tools.web.search.perplexity.model": "Perplexity Model",
+  "tools.web.search.searxng.baseUrl": "Searxng Base URL",
+  "tools.web.search.searxng.language": "Searxng Language",
+  "tools.web.search.searxng.safeSearch": "Searxng Safe Search",
+  "tools.web.search.searxng.categories": "Searxng Categories",
+  "tools.web.search.searxng.engines": "Searxng Engines",
   "tools.web.fetch.enabled": "Enable Web Fetch Tool",
   "tools.web.fetch.maxChars": "Web Fetch Max Chars",
   "tools.web.fetch.maxCharsCap": "Web Fetch Hard Max Chars",

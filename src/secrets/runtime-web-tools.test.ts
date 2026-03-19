@@ -4,7 +4,7 @@ import * as secretResolve from "./resolve.js";
 import { createResolverContext } from "./runtime-shared.js";
 import { resolveRuntimeWebTools } from "./runtime-web-tools.js";
 
-type ProviderUnderTest = "brave" | "gemini" | "grok" | "kimi" | "perplexity";
+type ProviderUnderTest = "brave" | "gemini" | "grok" | "kimi" | "perplexity" | "searxng";
 
 function asConfig(value: unknown): OpenClawConfig {
   return value as OpenClawConfig;
@@ -61,6 +61,9 @@ function readProviderKey(config: OpenClawConfig, provider: ProviderUnderTest): u
   }
   if (provider === "kimi") {
     return config.tools?.web?.search?.kimi?.apiKey;
+  }
+  if (provider === "searxng") {
+    return config.tools?.web?.search?.searxng;
   }
   return config.tools?.web?.search?.perplexity?.apiKey;
 }
@@ -137,6 +140,35 @@ describe("runtime web tools resolution", () => {
       }
     },
   );
+
+  it("accepts configured searxng provider without credentials", async () => {
+    const { metadata, resolvedConfig, context } = await runRuntimeWebTools({
+      config: asConfig({
+        tools: {
+          web: {
+            search: {
+              enabled: true,
+              provider: "searxng",
+              searxng: {
+                baseUrl: "http://127.0.0.1:8081/search",
+              },
+            },
+          },
+        },
+      }),
+    });
+
+    expect(metadata.search.providerConfigured).toBe("searxng");
+    expect(metadata.search.providerSource).toBe("configured");
+    expect(metadata.search.selectedProvider).toBe("searxng");
+    expect(metadata.search.selectedProviderKeySource).toBe("missing");
+    expect(resolvedConfig.tools?.web?.search?.searxng).toEqual({
+      baseUrl: "http://127.0.0.1:8081/search",
+    });
+    expect(context.warnings.map((warning) => warning.code)).not.toContain(
+      "WEB_SEARCH_KEY_UNRESOLVED_NO_FALLBACK",
+    );
+  });
 
   it("auto-detects provider precedence across all configured providers", async () => {
     const { metadata, resolvedConfig, context } = await runRuntimeWebTools({
