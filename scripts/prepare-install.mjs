@@ -34,15 +34,19 @@ const canRun = (command, args = ["--version"]) =>
     stdio: "ignore",
   }).status === 0;
 
+const isGitWorktree = () => canRun("git", ["rev-parse", "--is-inside-work-tree"]);
+
 const configureGitHooks = () => {
-  if (!canRun("git", ["rev-parse", "--is-inside-work-tree"])) {
-    return;
+  if (!isGitWorktree()) {
+    return false;
   }
 
   spawnSync("git", ["config", "core.hooksPath", "git-hooks"], {
     cwd: repoRoot,
     stdio: "ignore",
   });
+
+  return true;
 };
 
 const resolvePnpmInvocation = () => {
@@ -65,12 +69,18 @@ const shouldBuild = async () => {
     return false;
   }
 
+  // Git/GitHub installs should rebuild even if dist exists, because the checked-in
+  // bundle may be stale or built with a different environment than the current source.
+  if (isGitWorktree()) {
+    return true;
+  }
+
   const hasDistEntry = (await exists("dist/entry.js")) || (await exists("dist/entry.mjs"));
   const hasPluginSdkEntry = await exists("dist/plugin-sdk/index.js");
   return !(hasDistEntry && hasPluginSdkEntry);
 };
 
-configureGitHooks();
+const inGitWorktree = configureGitHooks();
 
 if (await shouldBuild()) {
   const pnpm = resolvePnpmInvocation();
@@ -82,7 +92,11 @@ if (await shouldBuild()) {
     process.exit(1);
   }
 
-  console.log("openclaw prepare: dist output missing, running minimal runtime build...");
+  console.log(
+    inGitWorktree
+      ? "openclaw prepare: git install detected, rebuilding minimal runtime bundle..."
+      : "openclaw prepare: dist output missing, running minimal runtime build...",
+  );
   run(pnpm.command, [...pnpm.prefixArgs, "canvas:a2ui:bundle"]);
   run(pnpm.command, [...pnpm.prefixArgs, "build:docker"]);
 }
