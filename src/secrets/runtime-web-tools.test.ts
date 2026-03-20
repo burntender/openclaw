@@ -583,6 +583,88 @@ describe("runtime web tools resolution", () => {
     expect(genericSpy).not.toHaveBeenCalled();
   });
 
+  it("uses runtime provider resolution for configured non-bundled providers", async () => {
+    const bundledSpy = vi.mocked(bundledWebSearchProviders.resolveBundledPluginWebSearchProviders);
+    const genericSpy = vi.mocked(runtimeWebSearchProviders.resolvePluginWebSearchProviders);
+    const searxngProvider: PluginWebSearchProviderEntry = {
+      pluginId: "nemoclaw",
+      id: "searxng",
+      label: "SearXNG",
+      hint: "Self-hosted search",
+      envVars: ["SEARXNG_BASE_URL"],
+      placeholder: "http://127.0.0.1:8081/search",
+      signupUrl: "https://docs.searxng.org/",
+      autoDetectOrder: 5,
+      credentialPath: "plugins.entries.nemoclaw.config.webSearch.baseUrl",
+      inactiveSecretPaths: ["plugins.entries.nemoclaw.config.webSearch.baseUrl"],
+      getCredentialValue: (searchConfig) => {
+        const scoped = searchConfig?.searxng;
+        return scoped && typeof scoped === "object"
+          ? (scoped as { baseUrl?: unknown }).baseUrl
+          : undefined;
+      },
+      setCredentialValue: (searchConfigTarget, value) => {
+        searchConfigTarget.searxng = {
+          ...(typeof searchConfigTarget.searxng === "object" &&
+          searchConfigTarget.searxng &&
+          !Array.isArray(searchConfigTarget.searxng)
+            ? (searchConfigTarget.searxng as Record<string, unknown>)
+            : {}),
+          baseUrl: value,
+        };
+      },
+      getConfiguredCredentialValue: (config) => {
+        const entryConfig = config?.plugins?.entries?.nemoclaw?.config;
+        return entryConfig && typeof entryConfig === "object"
+          ? (entryConfig as { webSearch?: { baseUrl?: unknown } }).webSearch?.baseUrl
+          : undefined;
+      },
+      setConfiguredCredentialValue: (configTarget, value) => {
+        const plugins = ensureRecord(configTarget as Record<string, unknown>, "plugins");
+        const entries = ensureRecord(plugins, "entries");
+        const pluginEntry = ensureRecord(entries, "nemoclaw");
+        const config = ensureRecord(pluginEntry, "config");
+        const webSearch = ensureRecord(config, "webSearch");
+        webSearch.baseUrl = value;
+      },
+      createTool: () => null,
+    };
+    genericSpy.mockReturnValueOnce([searxngProvider]);
+
+    const { metadata, resolvedConfig } = await runRuntimeWebTools({
+      config: asConfig({
+        tools: {
+          web: {
+            search: {
+              enabled: true,
+              provider: "searxng",
+              searxng: {
+                baseUrl: "http://127.0.0.1:8081/search",
+              },
+            },
+          },
+        },
+      }),
+    });
+
+    expect(metadata.search.providerConfigured).toBe("searxng");
+    expect(metadata.search.selectedProvider).toBe("searxng");
+    expect(metadata.search.providerSource).toBe("configured");
+    expect(
+      (
+        resolvedConfig.plugins?.entries?.nemoclaw?.config as
+          | { webSearch?: { baseUrl?: unknown } }
+          | undefined
+      )?.webSearch?.baseUrl,
+    ).toBe("http://127.0.0.1:8081/search");
+    expect(genericSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        bundledAllowlistCompat: true,
+      }),
+    );
+    expect(bundledSpy).not.toHaveBeenCalled();
+  });
+
   it("does not resolve Firecrawl SecretRef when Firecrawl is inactive", async () => {
     const resolveSpy = vi.spyOn(secretResolve, "resolveSecretRefValues");
     const { metadata, context } = await runRuntimeWebTools({

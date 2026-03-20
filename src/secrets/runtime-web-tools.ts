@@ -304,17 +304,23 @@ export async function resolveRuntimeWebTools(params: {
           bundledAllowlistCompat: true,
           onlyPluginIds: [configuredBundledPluginId],
         })
-      : !hasCustomWebSearchPluginRisk(params.sourceConfig)
-        ? resolveBundledPluginWebSearchProviders({
+      : rawProvider
+        ? resolvePluginWebSearchProviders({
             config: params.sourceConfig,
             env: { ...process.env, ...params.context.env },
             bundledAllowlistCompat: true,
           })
-        : resolvePluginWebSearchProviders({
-            config: params.sourceConfig,
-            env: { ...process.env, ...params.context.env },
-            bundledAllowlistCompat: true,
-          })
+        : !hasCustomWebSearchPluginRisk(params.sourceConfig)
+          ? resolveBundledPluginWebSearchProviders({
+              config: params.sourceConfig,
+              env: { ...process.env, ...params.context.env },
+              bundledAllowlistCompat: true,
+            })
+          : resolvePluginWebSearchProviders({
+              config: params.sourceConfig,
+              env: { ...process.env, ...params.context.env },
+              bundledAllowlistCompat: true,
+            })
     : [];
 
   const searchMetadata: RuntimeWebSearchMetadata = {

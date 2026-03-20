@@ -13,7 +13,11 @@ export function createWebSearchTool(options?: {
   sandboxed?: boolean;
   runtimeWebSearch?: RuntimeWebSearchMetadata;
 }): AnyAgentTool | null {
-  const resolved = resolveWebSearchDefinition(options);
+  const resolved =
+    resolveWebSearchDefinition({
+      ...options,
+      preferRuntimeProviders: true,
+    }) ?? resolveWebSearchDefinition(options);
   if (!resolved) {
     return null;
   }
