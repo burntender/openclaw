@@ -82,7 +82,7 @@ if (await shouldBuild()) {
     process.exit(1);
   }
 
-  console.log("openclaw prepare: dist output missing, running build steps...");
-  run(pnpm.command, [...pnpm.prefixArgs, "build"]);
-  run(pnpm.command, [...pnpm.prefixArgs, "ui:build"]);
+  console.log("openclaw prepare: dist output missing, running minimal runtime build...");
+  run(pnpm.command, [...pnpm.prefixArgs, "canvas:a2ui:bundle"]);
+  run(pnpm.command, [...pnpm.prefixArgs, "build:docker"]);
 }
