@@ -93,6 +93,23 @@ function loadMonolithicSdk() {
     }
   }
 
+  const distRootCandidate = path.resolve(__dirname, "..", "..", "dist", "plugin-sdk", "index.js");
+  if (fs.existsSync(distRootCandidate)) {
+    try {
+      monolithicSdk = getJiti(true)(distRootCandidate);
+      return monolithicSdk;
+    } catch {
+      // Fall through to source alias if dist is unavailable or stale.
+    }
+  }
+
+  const allowSourceFallback =
+    process.env.NODE_ENV !== "production" &&
+    process.env.OPENCLAW_ALLOW_SOURCE_PLUGIN_SDK_FALLBACK !== "0";
+  if (!allowSourceFallback) {
+    return null;
+  }
+
   monolithicSdk = getJiti(false)(path.join(__dirname, "compat.ts"));
   return monolithicSdk;
 }
